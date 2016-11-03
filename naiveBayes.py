@@ -5,7 +5,7 @@ import sys
 import os
 import numpy as np
 import nltk
-from nltk.stem.lancaster import LancasterStemmer
+from nltk.stem import WordNetLemmatizer
 from sklearn.naive_bayes import MultinomialNB
 
 ###############################################################################
@@ -17,26 +17,34 @@ def transfer(fileDj, vocabulary):
 
 
 def loadData(Path):
-    dict_predefined  = ['UNKNOWN','love', 'wonderful', 'best', 'great', 'superb',
+    dict_predefined  = ['love', 'wonderful', 'best', 'great', 'superb',
                         'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
                         'boring', '?', '!']
-    Xtrain = np.array([1400,15])
-    ytrain = np.array([1400,1])
-    Xtest = np.array([600,15])
-    ytest = np.array([600,1])
+    Xtrain = np.array([1400,15]):fill(0)
+    ytrain = np.array([1400,1]):fill(0)
+    Xtest = np.array([600,15]):fill(0)
+    ytest = np.array([600,1]):fill(0)
     train_path = Path + '/training_set'
     test_path = Path + '/test_set'
+    wordnet_lemmatizer = WordNetLemmatizer()
     #load train set neg files
-
+    i = 0
     for file in os.listdir( train_path+'/neg' ):
         f= open( train_path+'/neg' + '/' + file, 'rU')
         raw = f.read()
-        for tokens in nltk.word_tokenize(raw):
-            print(tokens)
+        for token in nltk.word_tokenize(raw):
+            token_stemed = wordnet_lemmatizer.lemmatize(token)
+            if token_stemed in dict_predefined:
+                index = dict_predefined.index(token_stemed)
+            else:
+                index = 0
+            Xtrain[i][index] = Xtrain[i][index] + 1
+            ytrain[i] = 0
+        i = i +1
 
- from nltk.stem import WordNetLemmatizer
->>> wordnet_lemmatizer = WordNetLemmatizer()
->>> wordnet_lemmatizer.lemmatize(‘dogs’)
+
+
+
 
     return Xtrain, Xtest, ytrain, ytest
 
