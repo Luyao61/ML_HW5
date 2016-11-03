@@ -35,7 +35,7 @@ def loadData(Path):
         for token in nltk.word_tokenize(raw):
             token_stemed = wordnet_lemmatizer.lemmatize(token)
             if token_stemed in dict_predefined:
-                index = dict_predefined.index(token_stemed)
+                index = dict_predefined.index(token_stemed) + 1 # add 1 because index if saved for 'UNKNOWN'
             else:
                 index = 0
             Xtrain[i][index] = Xtrain[i][index] + 1
