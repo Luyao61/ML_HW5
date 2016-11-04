@@ -41,33 +41,50 @@ def loadData(Path):
         f= open( train_path+'/neg' + '/' + file, 'rU')
         fearture_vector = transfer(f, dict_predefined)
         Xtrain.append(fearture_vector)
-        ytrain.append([0])
+        ytrain.append(-1)
     #load train set pos files
     for file in os.listdir( train_path+'/pos' ):
         f= open( train_path+'/pos' + '/' + file, 'rU')
         fearture_vector = transfer(f, dict_predefined)
         Xtrain.append(fearture_vector)
-        ytrain.append([1])
-    print(len(Xtrain))
+        ytrain.append(1)
 
     #load test set neg files
     for file in os.listdir( test_path+'/neg' ):
         f= open( test_path+'/neg' + '/' + file, 'rU')
         fearture_vector = transfer(f, dict_predefined)
         Xtest.append(fearture_vector)
-        ytest.append([0])
+        ytest.append(-1)
     #load test set pos files
     for file in os.listdir( test_path+'/pos' ):
         f= open( test_path+'/pos' + '/' + file, 'rU')
         fearture_vector = transfer(f, dict_predefined)
         Xtest.append(fearture_vector)
-        ytest.append([0])
+        ytest.append(1)
 
 
     return Xtrain, Xtest, ytrain, ytest
 
 
 def naiveBayesMulFeature_train(Xtrain, ytrain):
+    thetaPos = []
+    thetaNeg = []
+    print(len(Xtrain[0]))
+    total_words_pos = 0
+    total_words_neg = 0
+    dict_count_pos = [0]*len(Xtrain[0])
+    dict_count_neg = [0]*len(Xtrain[0])
+    for a, label in zip(Xtrain, ytrain):
+        for j in range(len(a)):
+            if(label == 1):
+                total_words_pos = total_words_pos + a[j]
+                dict_count_pos[j] = dict_count_pos[j] + a[j]
+            elif(label == -1):
+                total_words_neg = total_words_neg + a[j]
+                dict_count_neg[j] = dict_count_neg[j] + a[j]
+    for i in range(len(Xtrain[0])):
+        thetaPos.append((dict_count_pos[i] + 1.0)/(total_words_pos + len(Xtrain[0])))
+        thetaNeg.append((dict_count_neg[i] + 1.0)/(total_words_neg + len(Xtrain[0])))
 
     return thetaPos, thetaNeg
 
