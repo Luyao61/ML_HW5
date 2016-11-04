@@ -97,8 +97,8 @@ def naiveBayesMulFeature_test(Xtest, ytest, thetaPos, thetaNeg):
     P_Neg = math.log(0.5)
 
     for a, label in zip(Xtest,ytest):
-        P_Pos_a = 1
-        P_Neg_a = 1
+        P_Pos_a = P_Pos
+        P_Neg_a = P_Neg
         for i in range(len(Xtest[0])):
             P_Pos_a = P_Pos_a + math.log(thetaPos[i]) * a[i]
             P_Neg_a = P_Neg_a + math.log(thetaNeg[i]) * a[i]
@@ -120,14 +120,55 @@ def naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest):
 
 
 
-def naiveBayesMulFeature_testDirectOne(path,thetaPos, thetaNeg):
+def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg):
+    vocabulary  = ['love', 'wonderful', 'best', 'great', 'superb',
+                        'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
+                        'boring', '?', '!']
+    P_Pos = math.log(0.5)
+    P_Neg = math.log(0.5)
+
+    f= open( path, 'rU')
+    raw = f.read()
+    tokens = raw.split()
+    wordnet_lemmatizer = WordNetLemmatizer()
+    P_Pos_file = P_Pos
+    P_Neg_file = P_Neg
+    for token in tokens:
+        token_stemed = wordnet_lemmatizer.lemmatize(token)
+        if token_stemed in vocabulary:
+            index = vocabulary.index(token_stemed) + 1 # add 1 because index if saved for 'UNKNOWN'
+        else:
+            index = 0
+        P_Pos_file += math.log(thetaPos[index])
+        P_Neg_file += math.log(thetaNeg[index])
+        if(P_Pos_file > P_Neg_file):
+            yPredict = 1
+        else:
+            yPredict = -1
 
     return yPredict
 
 
-def naiveBayesMulFeature_testDirect(path,thetaPos, thetaNeg):
+def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg):
     yPredict = []
 
+    accurate_count = 0
+    n_files = 0.0
+    for file in os.listdir( path + '/neg' ):
+        file_path = path+'/neg' + '/' + file
+        n_files = n_files + 1
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        yPredict.append(y_)
+        if y_ == -1: accurate_count = accurate_count+1
+
+    for file in os.listdir( path + '/pos' ):
+        file_path = path+'/pos' + '/' + file
+        n_files = n_files + 1
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        yPredict.append(y_)
+        if y_ == 1: accurate_count = accurate_count+1
+
+    Accuracy = accurate_count/n_files
     return yPredict, Accuracy
 
 
