@@ -4,6 +4,7 @@
 import sys
 import os
 import numpy as np
+import math
 import nltk
 from nltk.stem import WordNetLemmatizer
 from sklearn.naive_bayes import MultinomialNB
@@ -83,20 +84,38 @@ def naiveBayesMulFeature_train(Xtrain, ytrain):
                 total_words_neg = total_words_neg + a[j]
                 dict_count_neg[j] = dict_count_neg[j] + a[j]
     for i in range(len(Xtrain[0])):
-        thetaPos.append((dict_count_pos[i] + 1.0)/(total_words_pos + len(Xtrain[0])))
-        thetaNeg.append((dict_count_neg[i] + 1.0)/(total_words_neg + len(Xtrain[0])))
+        thetaPos.append((dict_count_pos[i] + 1.0)/(total_words_pos + len(Xtrain[0])) * 1.0)
+        thetaNeg.append((dict_count_neg[i] + 1.0)/(total_words_neg + len(Xtrain[0])) * 1.0)
 
     return thetaPos, thetaNeg
 
 
-def naiveBayesMulFeature_test(Xtest, ytest,thetaPos, thetaNeg):
+def naiveBayesMulFeature_test(Xtest, ytest, thetaPos, thetaNeg):
     yPredict = []
+    accurate_count = 0
+    P_Pos = math.log(0.5)
+    P_Neg = math.log(0.5)
 
+    for a, label in zip(Xtest,ytest):
+        P_Pos_a = 1
+        P_Neg_a = 1
+        for i in range(len(Xtest[0])):
+            P_Pos_a = P_Pos_a + math.log(thetaPos[i]) * a[i]
+            P_Neg_a = P_Neg_a + math.log(thetaNeg[i]) * a[i]
+        if(P_Pos_a > P_Neg_a):
+            yPredict.append(1)
+            if(label == 1): accurate_count = accurate_count + 1
+        else:
+            yPredict.append(-1)
+            if(label == -1): accurate_count = accurate_count + 1
+    Accuracy = accurate_count/len(Xtest) * 1.0
     return yPredict, Accuracy
 
 
 def naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest):
-
+    clf = MultinomialNB()
+    clf.fit(Xtrain, ytrain)
+    Accuracy = clf.score(Xtest,ytest)
     return Accuracy
 
 
