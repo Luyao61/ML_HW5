@@ -1,6 +1,5 @@
 #!/home/luyaoz/anaconda3/bin/python
 
-
 import sys
 import os
 import numpy as np
@@ -174,13 +173,62 @@ def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg):
 
 
 def naiveBayesBernFeature_train(Xtrain, ytrain):
+    thetaNegTrue = [0] * len(Xtrain[0])
+    thetaPosTrue = [0] * len(Xtrain[0])
+    print(len(Xtrain[0]))
+    print(len(Xtrain))
+    for i in range(len(Xtrain[0])):
+        count = 1 # num of files which include Wi and are in Class Neg
+        for j in range ( int(len(Xtrain)/2) ):
+            if(Xtrain[j][i] != 0):
+                count = count + 1
+        # count/(num of files in class Neg + 2)
+        thetaNegTrue[i] = float(count/(len(Xtrain)/2 + 2))
+
+        count = 1 # num of files which include Wi and are in Class Pos
+        for j in range ( int(len(Xtrain)/2), len(Xtrain)):
+            if(Xtrain[j][i] != 0):
+                count = count + 1
+        # count/(num of files in class Pos + 2)
+        thetaPosTrue[i] = float(count/(len(Xtrain)/2 + 2))
 
     return thetaPosTrue, thetaNegTrue
 
 
 def naiveBayesBernFeature_test(Xtest, ytest, thetaPosTrue, thetaNegTrue):
     yPredict = []
+    accurate_count = 0
+    for i in range(len(Xtest)):
+        """
+        pos_score = 0
+        neg_score = 0
+        """
+        pos_score = 1
+        neg_score = 1
+        for j in range(len(Xtest[i])):
+            if(Xtest[i][j] == 0 ):
+                """
+                pos_score = pos_score + math.log(1-thetaPosTrue[0])
+                neg_score = neg_score + math.log(1-thetaNegTrue[0])"""
+                pos_score = pos_score * (1-thetaPosTrue[j])
+                neg_score = neg_score * (1-thetaNegTrue[j])
+            else:
+                """
+                pos_score = pos_score + math.log(thetaPosTrue[0])
+                neg_score = neg_score + math.log(thetaNegTrue[0])"""
+                pos_score = pos_score * thetaPosTrue[j]
+                neg_score = neg_score * thetaNegTrue[j]
+        if(pos_score >neg_score):
+            yPredict.append(1)
+            if(ytest[i] == 1):
+                accurate_count = accurate_count+1
+        else:
+            yPredict.append(-1)
+            if(ytest[i] == -1):
+                accurate_count = accurate_count+1
 
+    Accuracy = float(accurate_count/len(ytest))
+    print(yPredict)
     return yPredict, Accuracy
 
 
