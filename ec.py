@@ -14,7 +14,7 @@ from sklearn.naive_bayes import MultinomialNB
 def transfer(fileDj, vocabulary):
     wordnet_lemmatizer = WordNetLemmatizer()
     raw = fileDj.read()
-    BOWDj = [0]*15
+    BOWDj = [0]*(len(vocabulary)+1)
     for token in raw.split( ):
     #for token in nltk.word_tokenize(raw):
         token_stemed = wordnet_lemmatizer.lemmatize(token)
@@ -27,15 +27,41 @@ def transfer(fileDj, vocabulary):
 
 
 def loadData(Path):
-    dict_predefined  = ['love', 'wonderful', 'best', 'great', 'superb',
-                        'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
-                        'boring', '?', '!']
+    train_path = Path + '/training_set'
+    test_path = Path + '/test_set'
+
+    ####
+    vocabulary_size = 100
+    ####
+    #Find wword Frequency in anong all train files;
+    word_freq = {}
+    wordnet_lemmatizer = WordNetLemmatizer()
+    for file in os.listdir( train_path+'/neg' ):
+        f= open( train_path+'/neg' + '/' + file, 'rU')
+        raw = f.read()
+        for word in raw.split( ):
+            word_stemed = wordnet_lemmatizer.lemmatize(word)
+            if word_stemed in word_freq:
+                word_freq[word_stemed] = word_freq[word_stemed] + 1
+            else:
+                word_freq[word_stemed] = 0
+
+    for file in os.listdir( train_path+'/pos' ):
+        f= open( train_path+'/pos' + '/' + file, 'rU')
+        raw = f.read()
+        for word in raw.split( ):
+            word_stemed = wordnet_lemmatizer.lemmatize(word)
+            if word_stemed in word_freq:
+                word_freq[word_stemed] = word_freq[word_stemed] + 1
+            else:
+                word_freq[word_stemed] = 0
+    global dict_predefined
+    dict_predefined = sorted(word_freq, key=word_freq.get, reverse=True)[:vocabulary_size]
+
     Xtrain = []
     ytrain = []
     Xtest = []
     ytest = []
-    train_path = Path + '/training_set'
-    test_path = Path + '/test_set'
     #load train set neg files
     for file in os.listdir( train_path+'/neg' ):
         f= open( train_path+'/neg' + '/' + file, 'rU')
@@ -118,10 +144,8 @@ def naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest):
 
 
 
-def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg):
-    vocabulary  = ['love', 'wonderful', 'best', 'great', 'superb',
-                        'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
-                        'boring', '?', '!']
+def naiveBayesMulFeature_testDirectOne(path,thetaPos, thetaNeg, vocabulary):
+
     P_Pos = math.log(0.5)
     P_Neg = math.log(0.5)
 
@@ -147,7 +171,7 @@ def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg):
     return yPredict
 
 
-def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg):
+def naiveBayesMulFeature_testDirect(path,thetaPos, thetaNeg, vocabulary):
     yPredict = []
 
     accurate_count = 0
@@ -155,14 +179,14 @@ def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg):
     for file in os.listdir( path + '/neg' ):
         file_path = path+'/neg' + '/' + file
         n_files = n_files + 1
-        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg, vocabulary)
         yPredict.append(y_)
         if y_ == -1: accurate_count = accurate_count+1
 
     for file in os.listdir( path + '/pos' ):
         file_path = path+'/pos' + '/' + file
         n_files = n_files + 1
-        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg, vocabulary)
         yPredict.append(y_)
         if y_ == 1: accurate_count = accurate_count+1
 
@@ -252,7 +276,7 @@ if __name__ == "__main__":
     Accuracy_sk = naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest)
     print ("Sklearn MultinomialNB accuracy =", Accuracy_sk)
 
-    yPredict, Accuracy = naiveBayesMulFeature_testDirect(testFileDirectoryFullPath, thetaPos, thetaNeg)
+    yPredict, Accuracy = naiveBayesMulFeature_testDirect(testFileDirectoryFullPath, thetaPos, thetaNeg, dict_predefined)
     print ("Directly MNBC tesing accuracy =", Accuracy)
     print ("--------------------")
 
