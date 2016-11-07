@@ -32,6 +32,7 @@ def loadData(Path):
 
     ####
     vocabulary_size = 100
+    vocabulary_freq_threshold = 200
     ####
     #Find wword Frequency in anong all train files;
     word_freq = {}
@@ -57,6 +58,10 @@ def loadData(Path):
                 word_freq[word_stemed] = 0
     global dict_predefined
     dict_predefined = sorted(word_freq, key=word_freq.get, reverse=True)[:vocabulary_size]
+    dict_predefined = []
+    for w, freq in word_freq.items():
+        if(freq >= vocabulary_freq_threshold):
+            dict_predefined.append(w)
 
     Xtrain = []
     ytrain = []
