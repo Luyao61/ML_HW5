@@ -4,61 +4,64 @@ import sys
 import os
 import numpy as np
 import math
-import nltk
-from nltk.stem import WordNetLemmatizer
 from sklearn.naive_bayes import MultinomialNB
 
 ###############################################################################
 
 
 def transfer(fileDj, vocabulary):
-    wordnet_lemmatizer = WordNetLemmatizer()
-    raw = fileDj.read()
-    BOWDj = [0]*15
+    f= open( fileDj, 'rU')
+    raw = f.read()
+    BOWDj = [0]* len(vocabulary)
     for token in raw.split( ):
     #for token in nltk.word_tokenize(raw):
-        token_stemed = wordnet_lemmatizer.lemmatize(token)
-        if token_stemed in vocabulary:
-            index = vocabulary.index(token_stemed) + 1 # add 1 because index if saved for 'UNKNOWN'
+        if token in vocabulary:
+            index = vocabulary.index(token)
+        elif token in word_love_inflected:
+            index = vocabulary.index('love')
         else:
-            index = 0
+            index = vocabulary.index('UNK')
         BOWDj[index] = BOWDj[index] + 1
     return BOWDj
 
 
 def loadData(Path):
+    global dict_predefined
+    global word_love_inflected
     dict_predefined  = ['love', 'wonderful', 'best', 'great', 'superb',
                         'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
-                        'boring', '?', '!']
+                        'boring', '?', '!', 'UNK']
+    word_love_inflected = ['loving', 'loved', 'loves']
+
     Xtrain = []
     ytrain = []
     Xtest = []
     ytest = []
-    train_path = Path + '/training_set'
-    test_path = Path + '/test_set'
+    train_path = Path + 'training_set'
+    test_path = Path + 'test_set'
     #load train set neg files
     for file in os.listdir( train_path+'/neg' ):
-        f= open( train_path+'/neg' + '/' + file, 'rU')
-        fearture_vector = transfer(f, dict_predefined)
+        file_path = train_path+'/neg/' + file
+        fearture_vector = transfer(file_path, dict_predefined)
         Xtrain.append(fearture_vector)
         ytrain.append(-1)
     #load train set pos files
     for file in os.listdir( train_path+'/pos' ):
-        f= open( train_path+'/pos' + '/' + file, 'rU')
-        fearture_vector = transfer(f, dict_predefined)
+        file_path = train_path+'/pos/' + file
+        fearture_vector = transfer(file_path, dict_predefined)
         Xtrain.append(fearture_vector)
         ytrain.append(1)
 
     #load test set neg files
     for file in os.listdir( test_path+'/neg' ):
-        f= open( test_path+'/neg' + '/' + file, 'rU')
-        fearture_vector = transfer(f, dict_predefined)
+        file_path = test_path+'/neg/' + file
+        fearture_vector = transfer(file_path, dict_predefined)
         Xtest.append(fearture_vector)
         ytest.append(-1)
     #load test set pos files
     for file in os.listdir( test_path+'/pos' ):
-        f= open( test_path+'/pos' + '/' + file, 'rU')
-        fearture_vector = transfer(f, dict_predefined)
+        file_path = test_path+'/pos/' + file
+        fearture_vector = transfer(file_path, dict_predefined)
         Xtest.append(fearture_vector)
         ytest.append(1)
 
@@ -118,25 +121,23 @@ def naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest):
 
 
 
-def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg):
-    vocabulary  = ['love', 'wonderful', 'best', 'great', 'superb',
-                        'still', 'beautiful', 'bad', 'worst', 'stupid', 'waste',
-                        'boring', '?', '!']
+def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg, vocabulary):
+
     P_Pos = math.log(0.5)
     P_Neg = math.log(0.5)
 
     f= open( path, 'rU')
     raw = f.read()
     tokens = raw.split()
-    wordnet_lemmatizer = WordNetLemmatizer()
     P_Pos_file = P_Pos
     P_Neg_file = P_Neg
     for token in tokens:
-        token_stemed = wordnet_lemmatizer.lemmatize(token)
-        if token_stemed in vocabulary:
-            index = vocabulary.index(token_stemed) + 1 # add 1 because index if saved for 'UNKNOWN'
+        if token in vocabulary:
+            index = vocabulary.index(token)
+        elif token in word_love_inflected:
+            index = vocabulary.index('love')
         else:
-            index = 0
+            index = vocabulary.index('UNK')
         P_Pos_file += math.log(thetaPos[index])
         P_Neg_file += math.log(thetaNeg[index])
         if(P_Pos_file > P_Neg_file):
@@ -147,22 +148,22 @@ def naiveBayesMulFeature_testDirectOne(path, thetaPos, thetaNeg):
     return yPredict
 
 
-def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg):
+def naiveBayesMulFeature_testDirect(path, thetaPos, thetaNeg, vocabulary):
     yPredict = []
 
     accurate_count = 0
     n_files = 0.0
-    for file in os.listdir( path + '/neg' ):
-        file_path = path+'/neg' + '/' + file
+    for file in os.listdir( path + 'neg' ):
+        file_path = path+'neg' + '/' + file
         n_files = n_files + 1
-        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg, vocabulary)
         yPredict.append(y_)
         if y_ == -1: accurate_count = accurate_count+1
 
-    for file in os.listdir( path + '/pos' ):
-        file_path = path+'/pos' + '/' + file
+    for file in os.listdir( path + 'pos' ):
+        file_path = path+'pos' + '/' + file
         n_files = n_files + 1
-        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg)
+        y_ = naiveBayesMulFeature_testDirectOne(file_path, thetaPos, thetaNeg, vocabulary)
         yPredict.append(y_)
         if y_ == 1: accurate_count = accurate_count+1
 
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     Accuracy_sk = naiveBayesMulFeature_sk_MNBC(Xtrain, ytrain, Xtest, ytest)
     print ("Sklearn MultinomialNB accuracy =", Accuracy_sk)
 
-    yPredict, Accuracy = naiveBayesMulFeature_testDirect(testFileDirectoryFullPath, thetaPos, thetaNeg)
+    yPredict, Accuracy = naiveBayesMulFeature_testDirect(testFileDirectoryFullPath, thetaPos, thetaNeg, dict_predefined)
     print ("Directly MNBC tesing accuracy =", Accuracy)
     print ("--------------------")
 
