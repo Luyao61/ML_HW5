@@ -32,7 +32,7 @@ def loadData(Path):
 
     ####
     vocabulary_size = 100
-    vocabulary_freq_threshold = 200
+    vocabulary_freq_threshold = 3
     ####
     #Find wword Frequency in anong all train files;
     word_freq = {}
@@ -168,10 +168,10 @@ def naiveBayesMulFeature_testDirectOne(path,thetaPos, thetaNeg, vocabulary):
             index = 0
         P_Pos_file += math.log(thetaPos[index])
         P_Neg_file += math.log(thetaNeg[index])
-        if(P_Pos_file > P_Neg_file):
-            yPredict = 1
-        else:
-            yPredict = -1
+    if(P_Pos_file > P_Neg_file):
+        yPredict = 1
+    else:
+        yPredict = -1
 
     return yPredict
 
@@ -225,25 +225,30 @@ def naiveBayesBernFeature_test(Xtest, ytest, thetaPosTrue, thetaNegTrue):
     yPredict = []
     accurate_count = 0
     for i in range(len(Xtest)):
-        """
+
         pos_score = 0
         neg_score = 0
         """
         pos_score = 1
         neg_score = 1
+        """
         for j in range(len(Xtest[i])):
             if(Xtest[i][j] == 0 ):
+
+                pos_score = pos_score + math.log(1-thetaPosTrue[j])
+                neg_score = neg_score + math.log(1-thetaNegTrue[j])
                 """
-                pos_score = pos_score + math.log(1-thetaPosTrue[0])
-                neg_score = neg_score + math.log(1-thetaNegTrue[0])"""
                 pos_score = pos_score * (1-thetaPosTrue[j])
                 neg_score = neg_score * (1-thetaNegTrue[j])
-            else:
                 """
-                pos_score = pos_score + math.log(thetaPosTrue[0])
-                neg_score = neg_score + math.log(thetaNegTrue[0])"""
+            else:
+
+                pos_score = pos_score + math.log(thetaPosTrue[j])
+                neg_score = neg_score + math.log(thetaNegTrue[j])
+                """
                 pos_score = pos_score * thetaPosTrue[j]
                 neg_score = neg_score * thetaNegTrue[j]
+                """
         if(pos_score >neg_score):
             yPredict.append(1)
             if(ytest[i] == 1):
