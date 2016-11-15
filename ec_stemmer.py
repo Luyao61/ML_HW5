@@ -6,7 +6,6 @@ import numpy as np
 import math
 import nltk
 from nltk.stem import SnowballStemmer
-
 from sklearn.naive_bayes import MultinomialNB
 
 ###############################################################################
@@ -33,8 +32,8 @@ def loadData(Path):
     test_path = Path + '/test_set'
 
     ####
-    vocabulary_size = 100
-    vocabulary_freq_threshold = 3
+    ##vocabulary_size = 100
+    vocabulary_freq_threshold = 100
     ####
     #Find wword Frequency in anong all train files;
     word_freq = {}
@@ -59,7 +58,7 @@ def loadData(Path):
             else:
                 word_freq[word_stemed] = 0
     global dict_predefined
-    dict_predefined = sorted(word_freq, key=word_freq.get, reverse=True)[:vocabulary_size]
+    #dict_predefined = sorted(word_freq, key=word_freq.get, reverse=True)[:vocabulary_size]
     dict_predefined = []
     for w, freq in word_freq.items():
         if(freq >= vocabulary_freq_threshold):
@@ -278,8 +277,8 @@ if __name__ == "__main__":
 
 
     thetaPos, thetaNeg = naiveBayesMulFeature_train(Xtrain, ytrain)
-    print ("thetaPos =", thetaPos)
-    print ("thetaNeg =", thetaNeg)
+    #print ("thetaPos =", thetaPos)
+    #print ("thetaNeg =", thetaNeg)
     print ("--------------------")
 
     yPredict, Accuracy = naiveBayesMulFeature_test(Xtest, ytest, thetaPos, thetaNeg)
@@ -293,8 +292,8 @@ if __name__ == "__main__":
     print ("--------------------")
 
     thetaPosTrue, thetaNegTrue = naiveBayesBernFeature_train(Xtrain, ytrain)
-    print ("thetaPosTrue =", thetaPosTrue)
-    print ("thetaNegTrue =", thetaNegTrue)
+    #print ("thetaPosTrue =", thetaPosTrue)
+    #print ("thetaNegTrue =", thetaNegTrue)
     print ("--------------------")
 
     yPredict, Accuracy = naiveBayesBernFeature_test(Xtest, ytest, thetaPosTrue, thetaNegTrue)
